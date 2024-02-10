@@ -10,7 +10,7 @@ use owo_colors::OwoColorize;
 pub struct Logger {}
 
 impl Logger {
-  fn log(level: log::Level, log: &str) {
+  fn log(level: log::Level, log: String) {
     match level {
       log::Level::Error => {
         eprintln!("{}", log);

@@ -22,14 +22,15 @@ impl Logger {
   }
 
   pub fn init(level: Option<&str>) -> Result<(), std::io::Error> {
-    let manual_level = level.unwrap_or("info");
+    let manual_level: &str = level.unwrap_or("info");
     let env: env_logger::Env<'_> = env_logger::Env::default().filter_or("LOG_LEVEL", manual_level);
 
     env_logger::Builder::from_env(env)
-      .format(|_, record| {
+      .format(|_, record: &log::Record<'_>| {
         Ok({
-          let log_level = record.level();
-          let timestamp = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S");
+          let log_level: log::Level = record.level();
+          let timestamp: chrono::format::DelayedFormat<chrono::format::StrftimeItems<'_>> =
+            chrono::Utc::now().format("%Y-%m-%d %H:%M:%S");
           let level: &str = match log_level {
             log::Level::Error => "ERROR",
             log::Level::Warn => "WARN ",
@@ -38,8 +39,8 @@ impl Logger {
             log::Level::Trace => "TRACE",
           };
 
-          let mut stdout_supports_color = false;
-          let mut stderr_supports_color = false;
+          let mut stdout_supports_color: bool = false;
+          let mut stderr_supports_color: bool = false;
 
           if let Some(support) = supports_color::on(supports_color::Stream::Stdout) {
             if support.has_16m || support.has_256 {
@@ -53,14 +54,14 @@ impl Logger {
           }
 
           if stdout_supports_color && stderr_supports_color {
-            let background_color = match log_level {
+            let background_color: owo_colors::Style = match log_level {
               log::Level::Error => owo_colors::Style::new().on_red(),
               log::Level::Warn => owo_colors::Style::new().on_yellow(),
               log::Level::Info => owo_colors::Style::new().on_blue(),
               log::Level::Debug => owo_colors::Style::new().on_magenta(),
               log::Level::Trace => owo_colors::Style::new().on_white(),
             };
-            let foreground_color = match log_level {
+            let foreground_color: owo_colors::Style = match log_level {
               log::Level::Error => owo_colors::Style::new().red(),
               log::Level::Warn => owo_colors::Style::new().yellow(),
               log::Level::Info => owo_colors::Style::new().blue(),
@@ -68,10 +69,10 @@ impl Logger {
               log::Level::Trace => owo_colors::Style::new().white(),
             };
 
-            let log_text_1 = format!(" | {} ", level);
-            let log_text_2 = format!(" {} ", timestamp);
+            let log_text_1: String = format!(" | {} ", level);
+            let log_text_2: String = format!(" {} ", timestamp);
 
-            let formatted_log = format!(
+            let formatted_log: String = format!(
               "{}{}{} {}",
               log_text_1.style(background_color),
               log_text_2.on_bright_black(),
@@ -81,7 +82,7 @@ impl Logger {
 
             Logger::log(log_level, formatted_log);
           } else {
-            let formatted_log = format!("{} · {} · {}", level, timestamp, record.args());
+            let formatted_log: String = format!("{} · {} · {}", level, timestamp, record.args());
 
             Logger::log(log_level, formatted_log);
           }

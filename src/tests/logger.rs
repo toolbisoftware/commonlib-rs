@@ -3,7 +3,7 @@
 
 #[test]
 pub fn run() {
-  let init = crate::Logger::init(Some("trace"));
+  let init: Result<(), std::io::Error> = crate::Logger::init(Some("trace"));
 
   log::error!("Testing the logger.");
   log::warn!("Testing the logger.");

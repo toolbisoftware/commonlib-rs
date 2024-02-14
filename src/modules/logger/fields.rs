@@ -3,9 +3,9 @@
 
 #[derive(Debug)]
 pub struct LogFields {
-  category: Option<String>,
-  message: Option<String>,
-  ms: Option<f64>,
+  pub category: Option<String>,
+  pub message: Option<String>,
+  pub ms: Option<f64>,
 }
 
 impl tracing::field::Visit for LogFields {
@@ -18,7 +18,7 @@ impl tracing::field::Visit for LogFields {
 
   fn record_str(&mut self, field: &tracing::field::Field, value: &str) {
     match field.name() {
-      "category" => self.category = Some(value.into()),
+      "category" => self.category = Some(value.to_uppercase().into()),
       "message" => self.message = Some(value.into()),
       _ => {}
     }

@@ -10,7 +10,10 @@ log = "0.4.20"
 owo-colors = "4.0.0"
 supports-color = "3.0.0"
 tracing = "0.1.40"
-tracing-subscriber = "0.3.18"
+tracing-subscriber = { version = "0.3.18", features = ["std", "env-filter"] }
+
+[features]
+logger = []
 
 [profile.release]
 opt-level = 3

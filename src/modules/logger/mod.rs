@@ -1,14 +1,14 @@
 // Copyright (c) Toolbi Software. All rights reserved.
 // Check the README file in the project root for more information.
 
+mod fields;
+mod file;
+mod layer;
+
 use self::layer::Layer;
 use crate::error::CommonError;
 use std::io::Error;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-
-mod fields;
-mod file;
-mod layer;
 
 #[derive(Clone)]
 pub struct FileLoggingBuilder {

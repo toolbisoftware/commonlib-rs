@@ -7,7 +7,7 @@ pub fn pad_strings_to_longest<K>(strings: HashMap<K, String>) -> HashMap<K, Stri
 where
   K: std::hash::Hash + Clone + Eq,
 {
-  let mut max_length = 0;
+  let mut max_length: usize = 0;
   let mut hashmap: HashMap<K, String> = HashMap::new();
 
   for (_key, value) in strings.iter() {

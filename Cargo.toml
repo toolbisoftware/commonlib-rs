@@ -4,17 +4,32 @@ version = "0.0.1"
 edition = "2021"
 
 [dependencies]
-async-std = "1.12.0"
-chrono = "0.4.33"
-env_logger = "0.11.1"
-lazy_static = "1.4.0"
-log = "0.4.20"
-owo-colors = "4.0.0"
-serde = { version = "1.0.196", features = ["derive"] }
-serde_json = "1.0.113"
-supports-color = "3.0.0"
-tracing = "0.1.40"
-tracing-subscriber = { version = "0.3.18", features = ["std", "env-filter"] }
+async-std = { version = "1.12.0", optional = true }
+chrono = { version = "0.4.33", optional = true }
+env_logger = { version = "0.11.1", optional = true }
+lazy_static = { version = "1.4.0", optional = true }
+log = { version = "0.4.20", optional = true }
+owo-colors = { version = "4.0.0", optional = true }
+serde = { version = "1.0.196", features = ["derive"], optional = true }
+serde_json = { version = "1.0.113", optional = true }
+supports-color = { version = "3.0.0", optional = true }
+tracing = { version = "0.1.40", optional = true }
+tracing-subscriber = { version = "0.3.18", optional = true, features = [
+  "std",
+  "env-filter",
+] }
 
 [features]
-logger = []
+logger = [
+  "async-std",
+  "chrono",
+  "env_logger",
+  "lazy_static",
+  "log",
+  "owo-colors",
+  "serde",
+  "serde_json",
+  "supports-color",
+  "tracing",
+  "tracing-subscriber",
+]

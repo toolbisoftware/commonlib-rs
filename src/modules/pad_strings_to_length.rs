@@ -9,7 +9,7 @@ where
 {
   let mut hashmap: HashMap<K, String> = HashMap::new();
 
-  for (key, value) in strings.iter() {
+  for (key, value) in strings {
     let value_length: usize = value.len();
     let string: String = match value_length {
       len if len > length => value.chars().take(length).collect(),
@@ -17,10 +17,10 @@ where
         let padding: usize = length - value_length;
         format!("{}{}", value, " ".repeat(padding))
       }
-      _ => value.to_owned(),
+      _ => value,
     };
 
-    hashmap.insert(key.clone(), string);
+    hashmap.insert(key, string);
   }
 
   hashmap

@@ -17,17 +17,17 @@ where
     }
   }
 
-  for (key, value) in strings.iter() {
+  for (key, value) in strings {
     let value_length: usize = value.len();
     let string = match value_length {
       len if len < max_length => {
         let padding = max_length - value_length;
         format!("{}{}", value, " ".repeat(padding))
       }
-      _ => value.to_owned(),
+      _ => value,
     };
 
-    hashmap.insert(key.clone(), string);
+    hashmap.insert(key, string);
   }
 
   hashmap

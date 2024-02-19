@@ -9,7 +9,7 @@ pub fn pad_string_to_length(string: String, length: usize) -> String {
       let padding: usize = length - string_length;
       format!("{}{}", string, " ".repeat(padding))
     }
-    _ => string.to_owned(),
+    _ => string,
   };
 
   string

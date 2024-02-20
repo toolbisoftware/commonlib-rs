@@ -59,7 +59,7 @@ fn write_file(path: &Path, content: &LogFile) -> Result<(), Error> {
   let serialize: String = serde_json::to_string_pretty(&content)?;
   let serialize: &[u8] = serialize.as_bytes();
 
-  let mut file = std::fs::OpenOptions::new()
+  let mut file: std::fs::File = std::fs::OpenOptions::new()
     .write(true)
     .truncate(true)
     .open(path)?;

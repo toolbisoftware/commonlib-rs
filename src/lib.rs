@@ -3,6 +3,7 @@
 
 // TODO Automate the releases.
 
+mod error;
 mod modules;
 mod tests;
 

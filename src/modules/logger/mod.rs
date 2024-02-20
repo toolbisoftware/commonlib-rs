@@ -11,24 +11,24 @@ use std::io::Error;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Clone)]
-pub struct FileLoggingBuilder {
+pub struct LoggerFileLoggingBuilder {
   pub enabled: bool,
   pub path: Option<&'static str>,
 }
 
-pub struct Builder {
+pub struct LoggerBuilder {
   pub level: Option<tracing::Level>,
-  pub file_logging: Option<FileLoggingBuilder>,
+  pub file_logging: Option<LoggerFileLoggingBuilder>,
 }
 
 pub struct Logger {
   pub level: Option<tracing::Level>,
-  pub file_logging: Option<FileLoggingBuilder>,
+  pub file_logging: Option<LoggerFileLoggingBuilder>,
 }
 
 impl Logger {
-  pub fn init(builder: Builder) -> Result<(), Error> {
-    let env_filter = tracing_subscriber::EnvFilter::builder()
+  pub fn init(builder: LoggerBuilder) -> Result<(), Error> {
+    let env_filter: tracing_subscriber::EnvFilter = tracing_subscriber::EnvFilter::builder()
       .with_default_directive(tracing::level_filters::LevelFilter::INFO.into())
       .with_env_var("LOG_LEVEL")
       .from_env_lossy();
@@ -42,7 +42,7 @@ impl Logger {
         };
 
         self::file::init(path)
-          .map_err(|error| CommonError {
+          .map_err(|error: Error| CommonError {
             message: "The file logger couldn't be initialized.",
             error: Some(error),
           })

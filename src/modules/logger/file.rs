@@ -13,7 +13,7 @@ use std::{
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoggerLogFileEntry {
-  pub timestamp: String,
+  pub timestamp: i64,
   pub level: String,
   pub category: Option<String>,
   pub message: Option<String>,
@@ -100,9 +100,8 @@ pub fn init(base_path: &'static str) -> Result<(), Error> {
       };
 
       for log in logs {
-        let log_timestamp: &String = &log.timestamp;
-        let log_timestamp: chrono::prelude::NaiveDateTime =
-          chrono::NaiveDateTime::parse_from_str(log_timestamp, "%Y-%m-%d %H:%M:%S").unwrap();
+        let log_timestamp: i64 = log.timestamp;
+        let log_timestamp = chrono::NaiveDateTime::from_timestamp_millis(log_timestamp).unwrap();
         let log_timestamp: String = log_timestamp.format("%Y%m%d").to_string();
 
         if &log_timestamp != &timestamp {

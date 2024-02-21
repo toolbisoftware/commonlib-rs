@@ -17,6 +17,7 @@ pub struct LoggerLogFileEntry {
   pub level: String,
   pub category: Option<String>,
   pub message: Option<String>,
+  pub error: Option<String>,
   pub ms: Option<f64>,
 }
 

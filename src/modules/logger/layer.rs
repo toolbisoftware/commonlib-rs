@@ -72,6 +72,7 @@ where
         category: None,
         message: None,
         ms: None,
+        error: None,
       };
       event.record(&mut fields);
 
@@ -95,6 +96,13 @@ where
     let ms: String = {
       if let Some(data) = fields.ms {
         data.to_string()
+      } else {
+        "".into()
+      }
+    };
+    let error: String = {
+      if let Some(ref data) = fields.error {
+        format!("\n{}", data)
       } else {
         "".into()
       }
@@ -145,13 +153,14 @@ where
       };
 
       let text: String = format!(
-        "{}{}{}{}{}{}",
+        "{}{}{}{}{}{}{}",
         level.style(background_color),
         category,
         timestamp.on_bright_black(),
         " ".style(background_color),
         message.style(foreground_color),
-        ms.bright_black()
+        ms.bright_black(),
+        error
       );
 
       log(log_level, text);
@@ -172,8 +181,8 @@ where
       };
 
       let text: String = format!(
-        "{} {} · {} · {}{}",
-        level, category, timestamp_formatted, message, ms
+        "{} {} · {} · {}{}{}",
+        level, category, timestamp_formatted, message, ms, error
       );
 
       log(log_level, text);
@@ -189,6 +198,7 @@ where
         level: log_level.to_string(),
         category: fields.category,
         message: fields.message,
+        error: fields.error,
         ms: fields.ms,
       };
 

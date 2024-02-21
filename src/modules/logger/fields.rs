@@ -6,12 +6,14 @@ pub struct LogFields {
   pub category: Option<String>,
   pub message: Option<String>,
   pub ms: Option<f64>,
+  pub error: Option<String>,
 }
 
 impl tracing::field::Visit for LogFields {
   fn record_debug(&mut self, field: &tracing::field::Field, value: &dyn std::fmt::Debug) {
     match field.name() {
       "message" => self.message = Some(format!("{:?}", value)),
+      "error" => self.error = Some(format!("{:?}", value)),
       _ => {}
     }
   }

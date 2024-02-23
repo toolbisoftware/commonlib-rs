@@ -29,7 +29,7 @@ pub struct Logger {
 impl Logger {
   pub fn init(builder: LoggerBuilder) -> Result<(), Error> {
     let env_filter: tracing_subscriber::EnvFilter = tracing_subscriber::EnvFilter::builder()
-      .with_default_directive(tracing::level_filters::LevelFilter::INFO.into())
+      .with_default_directive(builder.level.unwrap_or(tracing::Level::INFO).into())
       .with_env_var("LOG_LEVEL")
       .from_env_lossy();
 

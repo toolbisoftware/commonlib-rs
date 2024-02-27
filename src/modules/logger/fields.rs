@@ -13,7 +13,11 @@ impl tracing::field::Visit for LogFields {
   fn record_debug(&mut self, field: &tracing::field::Field, value: &dyn std::fmt::Debug) {
     match field.name() {
       "message" => self.message = Some(format!("{:?}", value)),
-      "error" => self.error = Some(format!("{:?}", value)),
+      "error" => {
+        if !self.error.is_none() {
+          self.error = Some(format!("{:?}", value))
+        }
+      }
       _ => {}
     }
   }

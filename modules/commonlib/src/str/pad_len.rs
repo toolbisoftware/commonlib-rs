@@ -12,19 +12,19 @@ fn run(string: &str, length: usize) -> String {
   }
 }
 
-pub trait PadToLen {
+pub trait PadLen {
   type Output;
   fn run(&self, length: usize) -> Self::Output;
 }
 
-impl PadToLen for &str {
+impl PadLen for &str {
   type Output = String;
   fn run(&self, length: usize) -> Self::Output {
     run(self, length)
   }
 }
 
-impl<'a, K> PadToLen for HashMap<K, &'a str>
+impl<'a, K> PadLen for HashMap<K, &'a str>
 where
   K: Hash + Eq + Clone,
 {
@@ -39,7 +39,7 @@ where
   }
 }
 
-impl<'a> PadToLen for Vec<&'a str> {
+impl<'a> PadLen for Vec<&'a str> {
   type Output = Vec<String>;
   fn run(&self, length: usize) -> Self::Output {
     let mut result: Vec<String> = Vec::new();
@@ -51,6 +51,6 @@ impl<'a> PadToLen for Vec<&'a str> {
   }
 }
 
-pub fn pad_len<T: PadToLen>(value: T, length: usize) -> T::Output {
+pub fn pad_len<T: PadLen>(value: T, length: usize) -> T::Output {
   value.run(length)
 }

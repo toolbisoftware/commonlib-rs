@@ -1,0 +1,32 @@
+[package]
+name = "commonlib"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+async-std = { version = "1.12.0", optional = true }
+chrono = { version = "0.4.35", optional = true }
+lazy_static = { version = "1.4.0", optional = true }
+owo-colors = { version = "4.0.0", optional = true }
+serde = { version = "1.0.197", features = ["derive"], optional = true }
+serde_json = { version = "1.0.114", optional = true }
+supports-color = { version = "3.0.0", optional = true }
+tokio = { version = "1.36.0", optional = true }
+tracing = { version = "0.1.40", optional = true }
+tracing-subscriber = { version = "0.3.18", features = [
+  "env-filter",
+], optional = true }
+
+[features]
+logger = [
+  "dep:chrono",
+  "dep:lazy_static",
+  "dep:owo-colors",
+  "dep:serde",
+  "dep:serde_json",
+  "dep:supports-color",
+  "dep:tracing",
+  "dep:tracing-subscriber",
+]
+logger-async-std = ["async-std"]
+logger-tokio = ["tokio"]

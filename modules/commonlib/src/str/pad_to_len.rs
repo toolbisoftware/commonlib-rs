@@ -26,7 +26,7 @@ impl PadToLen for &str {
 
 impl<'a, K> PadToLen for HashMap<K, &'a str>
 where
-  K: Eq + Hash + Clone,
+  K: Hash + Eq + Clone,
 {
   type Output = HashMap<K, String>;
   fn run(&self, length: usize) -> Self::Output {

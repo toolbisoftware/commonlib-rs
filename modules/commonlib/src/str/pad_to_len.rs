@@ -51,6 +51,6 @@ impl<'a> PadToLen for Vec<&'a str> {
   }
 }
 
-pub fn pad_to_len<T: PadToLen>(value: T, length: usize) -> T::Output {
+pub fn pad_len<T: PadToLen>(value: T, length: usize) -> T::Output {
   value.run(length)
 }

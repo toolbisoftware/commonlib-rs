@@ -3,7 +3,9 @@
 
 use super::{
   field::Fields,
+  file::{LoggerFileLog, FILE_LOG_BUFFER},
   util::{get_env_var_level, log_to_console},
+  LoggerInnerFileLogging,
 };
 use crate::str::pad_len;
 use owo_colors::{OwoColorize, Style};
@@ -12,6 +14,7 @@ use tracing::Level;
 
 pub struct Layer {
   pub level: Level,
+  pub file_logging: LoggerInnerFileLogging,
   pub module_filters: HashMap<String, Level>,
   pub blocked_modules: Vec<String>,
 }
@@ -75,7 +78,7 @@ where
     true
   }
 
-  fn on_event(&self, event: &tracing::Event<'_>, _ctx: tracing_subscriber::layer::Context<'_, S>) {
+  fn on_event(&self, event: &tracing::Event<'_>, ctx: tracing_subscriber::layer::Context<'_, S>) {
     let level: &Level = event.metadata().level();
     let level_str: &str = match level {
       &Level::ERROR => "ERROR",
@@ -109,10 +112,11 @@ where
       result
     };
 
-    let message: String = fields.message.unwrap_or("".to_string());
-    let category: String = fields.category.unwrap_or("".to_string());
+    let message: String = fields.message.clone().unwrap_or("".to_string());
+    let category: String = fields.category.clone().unwrap_or("".to_string());
     let error: String = fields
       .error
+      .clone()
       .map(|v| format!("\n{}", v))
       .unwrap_or("".to_string());
     let ms: String = fields.ms.map(|v| v.to_string()).unwrap_or("".to_string());
@@ -189,6 +193,17 @@ where
       log_to_console(level, log);
     }
 
-    // TODO File logging
+    if self.file_logging.enabled {
+      FILE_LOG_BUFFER.lock().unwrap().push(LoggerFileLog {
+        timestamp: timestamp.timestamp_millis(),
+        level: level.to_string(),
+        category: fields.category,
+        message: fields.message,
+        error: fields.error,
+        ms: fields.ms,
+      })
+    }
+
+    ctx.event(event);
   }
 }

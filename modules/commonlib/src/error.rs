@@ -55,3 +55,15 @@ impl ErrorBuilder {
     self.inner
   }
 }
+
+//
+
+#[cfg(feature = "logger")]
+pub fn soft_panic(error: Error) {
+  use tracing::{error, warn};
+
+  error!(category = error.category, error = %error, "An error has occurred.");
+  warn!("Shutting down.");
+
+  std::process::exit(1)
+}

@@ -68,10 +68,9 @@ impl Logger {
     self
   }
 
-  pub fn init<'a>(self) -> Result<(), Error<'a>> {
+  pub fn init(self) -> Result<(), Error> {
     if self.inner.file_logging.enabled {
-      // TODO Init file logger
-      todo!();
+      file::init(&self.inner.file_logging.path)?
     }
 
     tracing_subscriber::registry()

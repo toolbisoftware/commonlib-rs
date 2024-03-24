@@ -12,7 +12,7 @@ use std::collections::HashMap;
 use tracing::Level;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-struct LoggerInnerFileLogging {
+pub struct LoggerInnerFileLogging {
   enabled: bool,
   path: String,
 }
@@ -76,6 +76,7 @@ impl Logger {
     tracing_subscriber::registry()
       .with(Layer {
         level: self.inner.level,
+        file_logging: self.inner.file_logging,
         module_filters: self.inner.module_filters,
         blocked_modules: self.inner.blocked_modules,
       })

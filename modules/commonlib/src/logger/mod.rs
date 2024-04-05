@@ -12,11 +12,13 @@ use std::collections::HashMap;
 use tracing::Level;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+#[derive(Clone)]
 pub struct LoggerInnerFileLogging {
   enabled: bool,
   path: String,
 }
 
+#[derive(Clone)]
 struct LoggerInner {
   level: tracing::Level,
   file_logging: LoggerInnerFileLogging,
@@ -24,6 +26,7 @@ struct LoggerInner {
   blocked_modules: Vec<String>,
 }
 
+#[derive(Clone)]
 pub struct Logger {
   inner: LoggerInner,
 }
@@ -68,20 +71,30 @@ impl Logger {
     self
   }
 
-  pub fn init(self) -> Result<(), Error> {
+  pub fn init(self) -> Result<Self, Error> {
     if self.inner.file_logging.enabled {
       file::init(&self.inner.file_logging.path)?
     }
 
+    let self_inner: Logger = self.clone();
+
     tracing_subscriber::registry()
       .with(Layer {
-        level: self.inner.level,
-        file_logging: self.inner.file_logging,
-        module_filters: self.inner.module_filters,
-        blocked_modules: self.inner.blocked_modules,
+        level: self_inner.inner.level,
+        file_logging: self_inner.inner.file_logging,
+        module_filters: self_inner.inner.module_filters,
+        blocked_modules: self_inner.inner.blocked_modules,
       })
       .try_init()
       .map_err(|_| ErrorBuilder::new("Failed to initialize the logger.").get())?;
+
+    Ok(self)
+  }
+
+  pub fn flush(self) -> Result<(), Error> {
+    if self.inner.file_logging.enabled {
+      file::flush(&self.inner.file_logging.path)?
+    }
 
     Ok(())
   }

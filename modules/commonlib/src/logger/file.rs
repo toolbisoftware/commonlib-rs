@@ -188,8 +188,6 @@ pub fn flush(path: &str) -> Result<(), Error> {
   let mut path: PathBuf = get_file_path(dir_path, &timestamp);
   let mut content: LogFile = read_file(path.as_path())?;
 
-  let sleep_dur: Duration = Duration::from_secs(1);
-
   let logs: Vec<LoggerFileLog> = {
     let mut buffer: std::sync::MutexGuard<'_, Vec<LoggerFileLog>> = FILE_LOG_BUFFER.lock().unwrap();
     std::mem::take(&mut *buffer)

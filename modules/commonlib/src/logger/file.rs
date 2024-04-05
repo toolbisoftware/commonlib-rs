@@ -175,3 +175,42 @@ pub fn init(path: &str) -> Result<(), Error> {
 
   Ok(())
 }
+
+pub fn flush(path: &str) -> Result<(), Error> {
+  let exe_path: PathBuf = std::env::current_exe().unwrap();
+  let exe_dir_path: &Path = exe_path.parent().unwrap();
+  let dir_path_join: PathBuf = exe_dir_path.join(&path);
+  let dir_path: &Path = dir_path_join.as_path();
+
+  create_dir(dir_path)?;
+
+  let mut timestamp: String = chrono::Utc::now().format("%Y%m%d").to_string();
+  let mut path: PathBuf = get_file_path(dir_path, &timestamp);
+  let mut content: LogFile = read_file(path.as_path())?;
+
+  let sleep_dur: Duration = Duration::from_secs(1);
+
+  let logs: Vec<LoggerFileLog> = {
+    let mut buffer: std::sync::MutexGuard<'_, Vec<LoggerFileLog>> = FILE_LOG_BUFFER.lock().unwrap();
+    std::mem::take(&mut *buffer)
+  };
+
+  for log in logs {
+    let log_timestamp_i64: i64 = log.timestamp;
+    let log_timestamp_chrono: chrono::prelude::DateTime<chrono::prelude::Utc> =
+      chrono::DateTime::from_timestamp_millis(log_timestamp_i64).unwrap();
+    let log_timestamp_str: String = log_timestamp_chrono.format("%Y%m%d").to_string();
+
+    if log_timestamp_str != timestamp {
+      timestamp = log_timestamp_str;
+      path = get_file_path(dir_path, &timestamp);
+      content = read_file(path.as_path())?;
+    }
+
+    content.logs.push(log);
+  }
+
+  write_file(path.as_path(), &content)?;
+
+  Ok(())
+}

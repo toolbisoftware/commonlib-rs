@@ -71,7 +71,7 @@ impl Logger {
     self
   }
 
-  pub fn init(self) -> Result<Self, Error> {
+  pub fn init(&self) -> Result<&Self, Error> {
     if self.inner.file_logging.enabled {
       file::init(&self.inner.file_logging.path)?
     }
@@ -91,7 +91,7 @@ impl Logger {
     Ok(self)
   }
 
-  pub fn flush(self) -> Result<(), Error> {
+  pub fn flush(&self) -> Result<(), Error> {
     if self.inner.file_logging.enabled {
       file::flush(&self.inner.file_logging.path)?
     }

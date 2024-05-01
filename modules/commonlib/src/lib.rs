@@ -4,13 +4,11 @@
 // TODO Automate the releases
 // TODO Write in-code documentation
 // TODO Write tests
+// TODO Add the essential traits for the exported structs and enums
 
 pub mod error;
 #[cfg(feature = "logger")]
-mod logger;
-mod stopwatch;
-pub mod str;
+pub mod logger;
 
 #[cfg(feature = "logger")]
 pub use logger::Logger;
-pub use stopwatch::{stopwatch, Stopwatch};

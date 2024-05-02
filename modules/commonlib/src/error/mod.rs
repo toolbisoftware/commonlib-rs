@@ -48,6 +48,33 @@ impl<'a> Error<'a> {
   pub fn to_logger(&self) -> ErrorDisplay {
     ErrorDisplay(self)
   }
+
+  #[cfg(feature = "logger")]
+  pub fn log(self) -> Self {
+    use tracing::error;
+
+    if let Some(ref error) = self.error {
+      if let Some(error) = error.downcast_ref::<Error>() {
+        let error: ErrorDisplay = error.to_logger();
+
+        error!(
+          message = self.message,
+          category = self.category,
+          error = %error
+        );
+      } else {
+        error!(
+          message = self.message,
+          category = self.category,
+          error = %error
+        );
+      }
+    } else {
+      error!(message = self.message, category = self.category);
+    }
+
+    self
+  }
 }
 
 impl<'a> std::fmt::Display for Error<'a> {

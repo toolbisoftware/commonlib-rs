@@ -1,209 +1,203 @@
 // Copyright (c) Toolbi Software. All rights reserved.
 // Check the README file in the project root for more information.
 
-use super::{
-  field::Fields,
-  file::{LoggerFileLog, FILE_LOG_BUFFER},
-  util::{get_env_var_level, log_to_console},
-  LoggerInnerFileLogging,
-};
+// TODO Maybe add a different log level for file logs
+
+use super::{fields::Fields, file_logger::Log, LogLevel, LoggerFileLogger};
 use crate::str::pad_len;
+use chrono::{
+  format::{DelayedFormat, StrftimeItems},
+  DateTime, Utc,
+};
 use owo_colors::{OwoColorize, Style};
-use std::{collections::HashMap, env};
-use tracing::Level;
+use std::{
+  collections::HashMap,
+  env,
+  sync::{Arc, Mutex},
+};
+use tracing::{Event, Metadata, Subscriber};
+use tracing_subscriber::{
+  layer::{Context, Layer as TracingLayer},
+  registry::LookupSpan,
+};
 
 pub struct Layer {
-  pub level: Level,
-  pub file_logging: LoggerInnerFileLogging,
-  pub module_filters: HashMap<String, Level>,
-  pub blocked_modules: Vec<String>,
+  pub log_level: LogLevel,
+  pub file_logger: LoggerFileLogger,
+  pub module_filters: HashMap<String, LogLevel>,
+  pub log_buffer: Arc<Mutex<Vec<Log>>>,
 }
 
-impl<S> tracing_subscriber::layer::Layer<S> for Layer
+impl<S> TracingLayer<S> for Layer
 where
-  S: tracing::Subscriber + for<'span> tracing_subscriber::registry::LookupSpan<'span>,
+  S: Subscriber + for<'span> LookupSpan<'span>,
 {
-  fn enabled(
-    &self,
-    metadata: &tracing::Metadata<'_>,
-    _ctx: tracing_subscriber::layer::Context<'_, S>,
-  ) -> bool {
-    // Check if the module is blocked
-    if let Some(module_path) = metadata.module_path() {
-      if self
-        .blocked_modules
-        .iter()
-        .position(|x| x == module_path)
-        .is_some()
-      {
-        return false;
-      };
+  fn enabled(&self, metadata: &Metadata<'_>, _ctx: Context<'_, S>) -> bool {
+    if self.log_level == LogLevel::Off {
+      return false;
     }
 
-    // Get the log level
-    let log_level: &Level = metadata.level();
+    let logger_log_level: LogLevel = {
+      let env_level_str: String = env::var("LOG_LEVEL").unwrap_or("".to_string());
+      LogLevel::from_str(&env_level_str).unwrap_or(self.log_level)
+    };
+    let log_level: LogLevel = LogLevel::from_tracing_level(metadata.level());
 
-    let module_filter: Option<&Level> = metadata
+    let module_log_level: Option<&LogLevel> = metadata
       .module_path()
-      .map(|v| self.module_filters.get(v))
+      .map(|module_path: &str| self.module_filters.get(module_path))
       .unwrap_or(None);
 
-    // Get the global level
-    let env_var_level: String = env::var("LOG_LEVEL").unwrap_or("".to_string());
-    let env_level: Option<Level> = get_env_var_level(env_var_level);
-    let level: Level = env_level.unwrap_or(self.level);
+    match module_log_level {
+      Some(module_log_level) => match &log_level <= module_log_level {
+        true => {
+          if logger_log_level < log_level {
+            let env_enforce_log_level: String =
+              env::var("LOG_LEVEL_FORCE").unwrap_or("".to_string());
+            if env_enforce_log_level != "0" {
+              return false;
+            }
+          }
 
-    if let Some(module_filter) = module_filter {
-      // Inverted for some reason
-      let valid: bool = log_level <= module_filter;
-
-      if !valid {
-        return false;
-      }
-
-      if &level < log_level {
-        let env_var_force: String = env::var("LOG_LEVEL_FORCE").unwrap_or("".to_string());
-        if env_var_force != "0" {
-          return false;
+          true
         }
-      }
-
-      return true;
+        false => false,
+      },
+      None => logger_log_level >= log_level,
     }
-
-    if &level < log_level {
-      return false;
-    };
-
-    true
   }
 
-  fn on_event(&self, event: &tracing::Event<'_>, ctx: tracing_subscriber::layer::Context<'_, S>) {
-    let level: &Level = event.metadata().level();
-    let level_str: &str = match level {
-      &Level::ERROR => "ERROR",
-      &Level::WARN => "WARN ",
-      &Level::INFO => "INFO ",
-      &Level::DEBUG => "DEBUG",
-      &Level::TRACE => "TRACE",
-    };
-
-    let timestamp: chrono::prelude::DateTime<chrono::prelude::Utc> = chrono::Utc::now();
-    let timestamp_str: chrono::format::DelayedFormat<chrono::format::StrftimeItems<'_>> =
-      timestamp.format("%Y-%m-%d %H:%M:%S");
-
-    let stdout_color_support: bool = supports_color::on(supports_color::Stream::Stdout)
-      .map(|s| s.has_256)
-      .unwrap_or(false);
-    let stderr_color_support: bool = supports_color::on(supports_color::Stream::Stderr)
-      .map(|s| s.has_256)
-      .unwrap_or(false);
-
+  fn on_event(&self, event: &Event<'_>, ctx: Context<'_, S>) {
+    let log_level: LogLevel = LogLevel::from_tracing_level(event.metadata().level());
+    let timestamp: DateTime<Utc> = chrono::Utc::now();
     let fields: Fields = {
-      let mut result: Fields = Fields {
+      let mut fields: Fields = Fields {
         message: None,
         category: None,
         error: None,
-        ms: None,
+        stopwatch_ms: None,
       };
-
-      event.record(&mut result);
-
-      result
+      event.record(&mut fields);
+      fields
     };
 
-    let message: String = fields.message.clone().unwrap_or("".to_string());
-    let category: String = fields.category.clone().unwrap_or("".to_string());
-    let error: String = fields
+    let log_str_level: &str = log_level.to_log_str().unwrap();
+    let log_str_category: String = fields.category.clone().unwrap_or("".to_string());
+    let log_str_timestamp: DelayedFormat<StrftimeItems> = timestamp.format("%Y-%m-%d %H:%M:%S");
+    let log_str_message: String = fields.message.clone().unwrap_or("".to_string());
+    let log_str_error: String = fields
       .error
       .clone()
-      .map(|v| format!("\n{}", v))
+      .map(|error: String| format!("\n{}", error))
       .unwrap_or("".to_string());
-    let ms: String = fields.ms.map(|v| v.to_string()).unwrap_or("".to_string());
+    let log_str_stopwatch_ms = fields
+      .stopwatch_ms
+      .map(|ms: f64| ms.to_string())
+      .unwrap_or("".to_string());
 
-    //
+    let terminal_color_support: bool = {
+      supports_color::on(supports_color::Stream::Stdout)
+        .map(|v: supports_color::ColorLevel| v.has_256)
+        .unwrap_or(false)
+        && supports_color::on(supports_color::Stream::Stderr)
+          .map(|v: supports_color::ColorLevel| v.has_256)
+          .unwrap_or(false)
+    };
 
-    if stdout_color_support && stderr_color_support {
-      let bg_color: Style = match level {
-        &Level::ERROR => Style::new().on_red(),
-        &Level::WARN => Style::new().on_yellow(),
-        &Level::INFO => Style::new().on_blue(),
-        &Level::DEBUG => Style::new().on_magenta(),
-        &Level::TRACE => Style::new().on_white(),
-      };
-      let fg_color: Style = match level {
-        &Level::ERROR => Style::new().red(),
-        &Level::WARN => Style::new().yellow(),
-        &Level::INFO => Style::new().blue(),
-        &Level::DEBUG => Style::new().magenta(),
-        &Level::TRACE => Style::new().white(),
-      };
+    let log_str = match terminal_color_support {
+      true => {
+        let bg_color: Style = match log_level {
+          LogLevel::Error => Some(Style::new().on_red()),
+          LogLevel::Warn => Some(Style::new().on_yellow()),
+          LogLevel::Info => Some(Style::new().on_blue()),
+          LogLevel::Debug => Some(Style::new().on_magenta()),
+          LogLevel::Trace => Some(Style::new().on_white()),
+          _ => None,
+        }
+        .unwrap();
 
-      let level_str: String = format!(" | {} ", level_str);
-      let category: String = if !category.is_empty() {
+        let fg_color: Style = match log_level {
+          LogLevel::Error => Some(Style::new().red()),
+          LogLevel::Warn => Some(Style::new().yellow()),
+          LogLevel::Info => Some(Style::new().blue()),
+          LogLevel::Debug => Some(Style::new().magenta()),
+          LogLevel::Trace => Some(Style::new().white()),
+          _ => None,
+        }
+        .unwrap();
+
+        let log_str_level: String = format!(" | {} ", log_str_level);
+        let log_str_category: String = log_str_category
+          .is_empty()
+          .then(|| format!("{}", pad_len(log_str_category.clone(), 13).style(bg_color)))
+          .unwrap_or(format!(
+            "{}",
+            format!("· {} ", pad_len(log_str_category, 10)).style(bg_color),
+          ));
+        let log_str_timestamp: String = format!(" {} ", log_str_timestamp);
+        let log_str_message: String = log_str_message
+          .is_empty()
+          .then(|| log_str_message.to_string())
+          .unwrap_or(format!(" {}", log_str_message.style(fg_color)));
+        let log_str_stopwatch_ms: String = log_str_stopwatch_ms
+          .is_empty()
+          .then(|| log_str_stopwatch_ms.to_string())
+          .unwrap_or(format!(
+            " {}",
+            format!("{} ms", log_str_stopwatch_ms).bright_black()
+          ));
+
         format!(
-          "{}",
-          format!("· {} ", pad_len(&*category, 10)).style(bg_color)
+          "{}{}{}{}{}{}{}",
+          log_str_level.style(bg_color),
+          log_str_category,
+          log_str_timestamp.on_bright_black(),
+          " ".style(bg_color),
+          log_str_message.style(fg_color),
+          log_str_stopwatch_ms.bright_black(),
+          log_str_error
         )
-      } else {
-        let pad: String = pad_len(&*category, 13);
-        format!("{}", pad.style(bg_color))
-      };
-      let timestamp: String = format!(" {} ", timestamp_str);
-      let message: String = if !message.is_empty() {
-        format!(" {}", message.style(fg_color))
-      } else {
-        message.to_string()
-      };
-      let ms: String = if !ms.is_empty() {
-        format!(" {}", format!("{} ms", ms).bright_black())
-      } else {
-        ms.to_string()
-      };
+      }
+      false => {
+        let log_str_category: String = log_str_category
+          .is_empty()
+          .then(|| pad_len(log_str_category.clone(), 13))
+          .unwrap_or(format!("· {} ", pad_len(log_str_category, 10)));
+        let log_str_stopwatch_ms: String = log_str_message
+          .is_empty()
+          .then(|| log_str_stopwatch_ms.to_string())
+          .unwrap_or(format!(" {} ms", log_str_stopwatch_ms));
 
-      let log: String = format!(
-        "{}{}{}{}{}{}{}",
-        level_str.style(bg_color),
-        category,
-        timestamp.on_bright_black(),
-        " ".style(bg_color),
-        message.style(fg_color), // ! ?
-        ms.bright_black(),
-        error
-      );
+        format!(
+          "{} {} · {} · {}{}{}",
+          log_str_level,
+          log_str_category,
+          log_str_timestamp,
+          log_str_message,
+          log_str_stopwatch_ms,
+          log_str_error
+        )
+      }
+    };
 
-      log_to_console(level, log);
-    } else {
-      let category: String = if !category.is_empty() {
-        format!("{}", format!("· {} ", pad_len(&*category, 10)))
-      } else {
-        pad_len(&*category, 13)
-      };
-      let ms: String = if !ms.is_empty() {
-        format!(" {}", format!("{} ms", ms))
-      } else {
-        ms
-      };
-
-      let log: String = format!(
-        "{} {} · {} · {}{}{}",
-        level_str, category, timestamp_str, message, ms, error
-      );
-
-      log_to_console(level, log);
+    match log_level {
+      LogLevel::Error => {
+        eprintln!("{}", log_str)
+      }
+      _ => println!("{}", log_str),
     }
 
-    if self.file_logging.enabled {
-      FILE_LOG_BUFFER.lock().unwrap().push(LoggerFileLog {
+    if self.file_logger.enable {
+      self.log_buffer.lock().unwrap().push(Log {
         timestamp: timestamp.timestamp_millis(),
-        level: level.to_string(),
+        level: log_level.to_str().unwrap().to_string(),
         category: fields.category,
         message: fields.message,
         error: fields.error,
-        ms: fields.ms,
+        ms: fields.stopwatch_ms,
       })
     }
 
-    ctx.event(event);
+    ctx.event(event)
   }
 }

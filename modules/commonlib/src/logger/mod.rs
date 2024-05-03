@@ -35,12 +35,12 @@ struct LoggerFileLogger {
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub enum LogLevel {
-  Trace,
-  Debug,
-  Info,
-  Warn,
-  Error,
   Off,
+  Error,
+  Warn,
+  Info,
+  Debug,
+  Trace,
 }
 
 #[derive(Debug, Error)]

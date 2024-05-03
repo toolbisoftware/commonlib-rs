@@ -52,8 +52,10 @@ where
       Some(module_log_level) => match &log_level <= module_log_level {
         true => {
           if logger_log_level < log_level {
+            // Enabled by default
             let env_enforce_log_level: String =
               env::var("LOG_LEVEL_FORCE").unwrap_or("".to_string());
+            // Check if it has been manually disabled
             if env_enforce_log_level != "0" {
               return false;
             }

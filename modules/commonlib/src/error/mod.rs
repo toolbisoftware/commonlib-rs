@@ -3,6 +3,7 @@
 
 #[cfg(feature = "logger")]
 mod display;
+mod r#macro;
 #[cfg(feature = "logger")]
 mod nester;
 mod soft_panic;
@@ -14,7 +15,7 @@ use std::error::Error as StdError;
 pub struct Error {
   pub message: String,
   pub category: Option<String>,
-  pub error: Option<Box<dyn StdError + Send>>,
+  pub error: Option<Box<dyn StdError + Send + Sync>>,
 }
 
 #[cfg(feature = "logger")]
@@ -34,7 +35,7 @@ impl Error {
     self
   }
 
-  pub fn error(mut self, error: Box<dyn StdError + Send>) -> Self {
+  pub fn error(mut self, error: Box<dyn StdError + Send + Sync>) -> Self {
     self.error = Some(error);
     self
   }
@@ -88,7 +89,7 @@ impl std::fmt::Display for Error {
     let error: String = self
       .error
       .as_ref()
-      .map(|error: &Box<dyn StdError + Send>| format!("\n{}", error.to_string()))
+      .map(|error: &Box<dyn StdError + Send + Sync>| format!("\n{}", error.to_string()))
       .unwrap_or("".to_string());
 
     write!(f, "{}{}{}", category, message, error)?;

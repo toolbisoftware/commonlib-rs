@@ -9,6 +9,11 @@
 pub mod error;
 #[cfg(feature = "logger")]
 pub mod logger;
+mod macros;
+pub mod stopwatch;
+pub mod str;
 
+pub use error::Error;
 #[cfg(feature = "logger")]
 pub use logger::Logger;
+pub use stopwatch::Stopwatch;

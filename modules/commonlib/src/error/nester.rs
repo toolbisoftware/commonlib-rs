@@ -5,20 +5,24 @@ use super::Error;
 use owo_colors::OwoColorize;
 use std::error::Error as StdError;
 
-pub fn nester(f: &mut std::fmt::Formatter<'_>, error: &Box<dyn StdError>) -> std::fmt::Result {
+pub fn nester(
+  f: &mut std::fmt::Formatter<'_>,
+  error: &Box<dyn StdError + Send>,
+) -> std::fmt::Result {
   nester_inner(f, error, 1)
 }
 
 fn nester_inner(
   f: &mut std::fmt::Formatter<'_>,
-  error: &Box<dyn StdError>,
+  error: &Box<dyn StdError + Send>,
   deepness: usize,
 ) -> std::fmt::Result {
   match error.downcast_ref::<Error>() {
     Some(error) => {
       let category: String = error
         .category
-        .map(|category: &str| format!("[{}] ", category.to_uppercase()))
+        .as_ref()
+        .map(|category: &String| format!("[{}] ", category.to_uppercase()))
         .unwrap_or("".to_string());
       let line: String = create_line(&format!("{}{}", category, error.message), deepness);
       let line_break: &str = error.error.is_some().then(|| "\n").unwrap_or("");

@@ -3,11 +3,9 @@
 
 #[macro_export]
 macro_rules! error {
-  ($msg:expr) => {{
-    crate::Error::new($msg)
-  }};
-  ($msg:expr, $cat:expr $(, $err:expr)?) => {{
-    let mut builder = crate::Error::new($msg).category($cat);
+  ($msg:expr $(, cat: $cat:expr)? $(, err: $err:expr)?) => {{
+    let mut builder = crate::Error::new($msg);
+    $(builder = builder.category($cat);)?
     $(builder = builder.error(Box::new($err));)?
     builder
   }};

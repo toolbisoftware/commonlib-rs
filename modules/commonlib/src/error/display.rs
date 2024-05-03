@@ -11,7 +11,8 @@ impl<'a> std::fmt::Display for ErrorDisplay<'a> {
     let category: String = self
       .0
       .category
-      .map(|category: &str| format!("[{}] ", category.to_uppercase()))
+      .as_ref()
+      .map(|category: &String| format!("[{}] ", category.to_uppercase()))
       .unwrap_or("".to_string());
     let line: String = create_line(&format!("{}{}", category, self.0.message), 0);
     let line_break = self.0.error.is_some().then(|| "\n").unwrap_or("");

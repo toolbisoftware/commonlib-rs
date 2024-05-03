@@ -11,30 +11,30 @@ pub use soft_panic::soft_panic;
 use std::error::Error as StdError;
 
 #[derive(Debug)]
-pub struct Error<'a> {
-  pub message: &'a str,
-  pub category: Option<&'a str>,
-  pub error: Option<Box<dyn StdError>>,
+pub struct Error {
+  pub message: String,
+  pub category: Option<String>,
+  pub error: Option<Box<dyn StdError + Send>>,
 }
 
 #[cfg(feature = "logger")]
-pub struct ErrorDisplay<'a>(&'a Error<'a>);
+pub struct ErrorDisplay<'a>(&'a Error);
 
-impl<'a> Error<'a> {
-  pub fn new(message: &'a str) -> Self {
+impl Error {
+  pub fn new(message: &str) -> Self {
     Self {
-      message,
+      message: message.to_string(),
       category: None,
       error: None,
     }
   }
 
-  pub fn category(mut self, category: &'a str) -> Self {
-    self.category = Some(category);
+  pub fn category(mut self, category: &str) -> Self {
+    self.category = Some(category.to_string());
     self
   }
 
-  pub fn error(mut self, error: Box<dyn StdError>) -> Self {
+  pub fn error(mut self, error: Box<dyn StdError + Send>) -> Self {
     self.error = Some(error);
     self
   }
@@ -77,17 +77,18 @@ impl<'a> Error<'a> {
   }
 }
 
-impl<'a> std::fmt::Display for Error<'a> {
+impl std::fmt::Display for Error {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    let message: &str = self.message;
+    let message = &self.message;
     let category: String = self
       .category
-      .map(|category: &str| format!("{}: ", category.to_uppercase()))
+      .as_ref()
+      .map(|category: &String| format!("{}: ", category.to_uppercase()))
       .unwrap_or("".to_string());
     let error: String = self
       .error
       .as_ref()
-      .map(|error: &Box<dyn StdError>| format!("\n{}", error.to_string()))
+      .map(|error: &Box<dyn StdError + Send>| format!("\n{}", error.to_string()))
       .unwrap_or("".to_string());
 
     write!(f, "{}{}{}", category, message, error)?;
@@ -96,4 +97,4 @@ impl<'a> std::fmt::Display for Error<'a> {
   }
 }
 
-impl StdError for Error<'static> {}
+impl StdError for Error {}

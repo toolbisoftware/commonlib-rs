@@ -7,14 +7,14 @@ use std::error::Error as StdError;
 
 pub fn nester(
   f: &mut std::fmt::Formatter<'_>,
-  error: &Box<dyn StdError + Send>,
+  error: &Box<dyn StdError + Send + Sync>,
 ) -> std::fmt::Result {
   nester_inner(f, error, 1)
 }
 
 fn nester_inner(
   f: &mut std::fmt::Formatter<'_>,
-  error: &Box<dyn StdError + Send>,
+  error: &Box<dyn StdError + Send + Sync>,
   deepness: usize,
 ) -> std::fmt::Result {
   match error.downcast_ref::<Error>() {

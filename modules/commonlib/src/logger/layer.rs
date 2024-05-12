@@ -165,7 +165,7 @@ where
           .is_empty()
           .then(|| pad_len(log_str_category.clone(), 13))
           .unwrap_or(format!("· {} ", pad_len(log_str_category, 10)));
-        let log_str_stopwatch_ms: String = log_str_message
+        let log_str_stopwatch_ms: String = log_str_stopwatch_ms
           .is_empty()
           .then(|| log_str_stopwatch_ms.to_string())
           .unwrap_or(format!(" {} ms", log_str_stopwatch_ms));

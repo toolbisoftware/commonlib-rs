@@ -7,4 +7,4 @@ pub mod trunc;
 
 pub use pad_eq::pad_eq;
 pub use pad_len::pad_len;
-pub use trunc::trunc;
+pub use trunc::{trunc, Trunc};

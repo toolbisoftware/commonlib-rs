@@ -1,36 +1,35 @@
 // Copyright (c) Toolbi Software. All rights reserved.
 // Check the README file in the project root for more information.
 
-// TODO Maybe return a different struct after init
-
-mod fields;
-mod file_logger;
-mod layer;
-use self::{
-  file_logger::{FileLogger, Log},
-  layer::Layer,
-};
 use std::{
   collections::HashMap,
   path::Path,
   result::Result as StdResult,
   sync::{Arc, Mutex},
 };
+
 use thiserror::Error;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+pub use self::file::FileLog;
+
+mod fields;
+mod file;
+mod layer;
+
+type Result<T = ()> = StdResult<T, Error>;
+
 #[derive(Debug)]
 pub struct Logger {
-  log_level: LogLevel,
-  file_logger: LoggerFileLogger,
+  level: LogLevel,
+  file_logger_enable: bool,
+  file_logger_path: String,
+  file_logger_buffer: Arc<Mutex<Vec<FileLog>>>,
   module_filters: HashMap<String, LogLevel>,
-  log_buffer: Arc<Mutex<Vec<Log>>>,
 }
 
-#[derive(Debug, Clone)]
-struct LoggerFileLogger {
-  enable: bool,
-  path: String,
+pub struct LoggerBuilder {
+  inner: Logger,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
@@ -48,31 +47,22 @@ pub enum Error {
   #[error("Failed to initialize the logger.")]
   Init(tracing_subscriber::util::TryInitError),
   #[error("Failed to initialize the file logger.")]
-  FileLoggerInit(self::file_logger::Error),
+  FileLoggerInit(self::file::Error),
 }
 
-type Result<T> = StdResult<T, Error>;
-
 impl Logger {
-  pub fn new() -> Self {
-    Self {
-      log_level: LogLevel::Info,
-      file_logger: LoggerFileLogger {
-        enable: false,
-        path: "./logs".to_string(),
-      },
-      module_filters: HashMap::new(),
-      log_buffer: Arc::new(Mutex::new(Vec::new())),
-    }
+  pub fn new() -> LoggerBuilder {
+    LoggerBuilder::new()
   }
 
   pub fn init(self) -> Result<Self> {
     tracing_subscriber::registry()
       .with(Layer {
-        log_level: self.log_level.clone(),
-        file_logger: self.file_logger.clone(),
+        level: self.level.clone(),
+        file_logger_enable: self.file_logger_enable,
+        file_logger_path: self.file_logger_path.clone(),
+        file_logger_buffer: self.file_logger_buffer.clone(),
         module_filters: self.module_filters.clone(),
-        log_buffer: self.log_buffer.clone(),
       })
       .try_init()
       .map_err(Error::Init)?;
@@ -80,43 +70,54 @@ impl Logger {
     Ok(self)
   }
 
-  pub async fn init_file_logger(&self) -> Result<()> {
-    FileLogger::new(Path::new(&self.file_logger.path), self.log_buffer.clone())
-      .init()
-      .await
-      .map_err(Error::FileLoggerInit)?;
+  pub async fn init_file_logger(&self) -> Result {
+    FileLogger::new(
+      Path::new(&self.file_logger_path),
+      self.file_logger_buffer.clone(),
+    )
+    .init()
+    .await
+    .map_err(Error::FileLoggerInit)?;
 
     Ok(())
   }
+}
 
-  pub fn stop(&self) -> Result<()> {
-    todo!()
+impl LoggerBuilder {
+  pub fn new() -> Self {
+    Self {
+      inner: Logger {
+        level: LogLevel::Info,
+        file_logger_enable: false,
+        file_logger_path: "./logs".to_string(),
+        file_logger_buffer: Arc::new(Mutex::new(Vec::new())),
+        module_filters: HashMap::new(),
+      },
+    }
   }
 
-  pub fn flush(&self) -> Result<()> {
-    todo!()
-  }
-
-  pub fn set_level(mut self, level: LogLevel) -> Self {
-    self.log_level = level;
+  pub fn level(mut self, level: LogLevel) -> Self {
+    self.inner.level = level;
     self
   }
 
-  pub fn enable_file_logger(mut self, enable: bool) -> Self {
-    self.file_logger.enable = enable;
+  pub fn file_logger(mut self, enable: bool) -> Self {
+    self.inner.file_logger_enable = enable;
     self
   }
 
-  pub fn set_file_logger_path(mut self, file_logger_path: &str) -> Self {
-    self.file_logger.path = file_logger_path.to_string();
+  pub fn file_logger_path(mut self, path: &str) -> Self {
+    self.inner.file_logger_path = path.to_string();
     self
   }
 
-  pub fn add_module_filter(mut self, module_name: &str, log_level: LogLevel) -> Self {
+  pub fn module_filter(mut self, name: &str, level: LogLevel) -> Self {
+    self.inner.module_filters.insert(name.to_string(), level);
     self
-      .module_filters
-      .insert(module_name.to_string(), log_level);
-    self
+  }
+
+  pub fn get(self) -> Logger {
+    self.inner
   }
 }
 
@@ -132,8 +133,8 @@ impl LogLevel {
     }
   }
 
-  pub fn from_tracing_level(tracing_level: &tracing::Level) -> Self {
-    match tracing_level {
+  pub fn from_tracing_level(level: &tracing::Level) -> Self {
+    match level {
       &tracing::Level::ERROR => Self::Error,
       &tracing::Level::WARN => Self::Warn,
       &tracing::Level::INFO => Self::Info,

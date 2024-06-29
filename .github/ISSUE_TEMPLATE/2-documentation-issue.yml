@@ -8,15 +8,15 @@ body:
         Thank you for submitting a documentation issue. It helps make the project better.
   - type: dropdown
     attributes:
-      label: What is the type of issue?
+      label: What is the type of the issue?
       multiple: true
       options:
         - Documentation is missing
         - Documentation is incorrect
         - Documentation is confusing
         - Something else
-    validations:
-      required: true
+      validations:
+        required: true
   - type: textarea
     attributes:
       label: What is the issue?
@@ -25,6 +25,6 @@ body:
   - type: textarea
     attributes:
       label: Where did you find it?
-      description: If possible, please provide the URL(s) where you found this issue.
+      description: If possible, please provide all the URL(s) where this issue applies.
     validations:
       required: true

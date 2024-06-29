@@ -1,5 +1,5 @@
 name: 🚀 Feature Request
-description: Suggest an idea, feature or enhancement.
+description: Submit an idea or suggest a feature or enhancement.
 labels: ["Type: Feature Request"]
 body:
   - type: markdown

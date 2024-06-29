@@ -1,10 +1,12 @@
-# CommonLib · A Rust library
+# CommonLib - Rust Edition
 
 A Rust library with some common functions.
 
+<!-- Stuff goes here -->
+
 ## Contributing
 
-Check out how to do it [here](https://github.com/toolbisoftware/commonlib-rs/blob/main/CONTRIBUTING.md).
+Check out how to do it [**here**](https://github.com/toolbisoftware/commonlib-rs/blob/main/CONTRIBUTING.md).
 
 ## License
 

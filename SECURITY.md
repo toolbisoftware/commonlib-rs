@@ -8,4 +8,4 @@
 
 ## Reporting a Vulnerability
 
-Check out how to do it [here](https://github.com/toolbisoftware/contributing/blob/main/src/SECURITY.md).
+Check out how to do it [**here**](https://github.com/toolbisoftware/contributing/blob/main/SECURITY.md).

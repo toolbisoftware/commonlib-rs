@@ -1,20 +1,40 @@
-## What does this Pull Request do?
+# Pull Request
 
-<!-- Please explain what your changes do here. -->
+## Information
 
-- [ ] Code changes
-- [ ] Documentation changes
-- [ ] Other
+- ### Kind:
 
-## How did you verify your code works?
+  <!-- Uncomment the ones that apply -->
 
-_Only fill this field if the pull request has code changes._
+  <!-- - Code changes -->
+  <!-- - Documentation changes -->
+  <!-- - Other -->
+  <!--   - Specify here -->
 
-## Additional information
+## Changes
 
-_Is there something else you think we should know?_
+<!-- Explain here the changes -->
 
 ## Checks
 
-- [ ] I am aware of [Toolbi's Contribution Guidelines](https://github.com/toolbisoftware/contributing/blob/main/CONTRIBUTING.md) and I follow them.
-- [ ] If there are any code changes I have made sure that my code works.
+### Global
+
+- [ ] This Pull Request follows [Toolbi's Contribution Guidelines](https://github.com/toolbisoftware/contributing/blob/main/CONTRIBUTING.md).
+
+<!-- Uncomment the following lines if they apply -->
+
+<!-- ### Code
+
+- [ ] The code changes made by this Pull Request have been tested and they work. -->
+
+<!-- Uncomment the following lines if they apply -->
+
+<!-- ### Documentation
+
+- [ ] The changes in the documentation have been checked and they do not contain grammatical errors. -->
+
+<!-- Uncomment if notes need to be written -->
+
+<!-- ## Notes -->
+
+<!-- Write notes here -->

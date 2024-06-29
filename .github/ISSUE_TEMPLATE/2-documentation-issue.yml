@@ -15,8 +15,8 @@ body:
         - Documentation is incorrect
         - Documentation is confusing
         - Something else
-      validations:
-        required: true
+    validations:
+      required: true
   - type: textarea
     attributes:
       label: What is the issue?

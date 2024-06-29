@@ -1,6 +1,6 @@
 name: 📗 Documentation Issue
 description: Report an issue with the documentation.
-labels: ["Category: Documentation"]
+labels: ["Type: Documentation"]
 body:
   - type: markdown
     attributes:

@@ -19,7 +19,7 @@ pub struct Error {
 }
 
 #[derive(Debug)]
-pub struct ErrorTrace {
+struct ErrorTrace {
   file: String,
   line: String,
   column: String,

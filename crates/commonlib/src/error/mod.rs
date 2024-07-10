@@ -2,10 +2,11 @@
 // Check the README file in the project root for more information.
 
 // TODO Add 'anyhow' compatibility
+// TODO Make errors colorful depending on whether the feature is enabled and whether the terminal has support for it
 
 use std::{error::Error as _, ops::Deref as _, panic::Location};
 
-pub use self::fmt::Group;
+use self::fmt::ErrorFmtGroup;
 
 mod fmt;
 
@@ -115,7 +116,7 @@ impl std::fmt::Display for Error {
         elements.push(format!("at {}:{}:{}", trace.file, trace.line, trace.column));
       }
 
-      groups.push(Group { elements })
+      groups.push(ErrorFmtGroup { elements })
     }
 
     let lines = fmt::format(groups);

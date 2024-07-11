@@ -5,6 +5,10 @@ use std::time::Duration;
 
 use crate::prelude::Round;
 
+pub use self::stopwatch::Stopwatch;
+
+pub mod stopwatch;
+
 #[derive(Debug)]
 pub struct Time {
   duration: Duration,

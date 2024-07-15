@@ -1,0 +1,56 @@
+[package]
+name = "commonlib"
+version = "0.0.1"
+edition = "2021"
+
+
+[dependencies.async-std]
+version = "1.12.0"
+optional = true
+
+[dependencies.chrono]
+version = "0.4.38"
+optional = true
+
+[dependencies.csv]
+version = "1.3.0"
+optional = true
+
+[dependencies.num-traits]
+version = "0.2.19"
+
+[dependencies.owo-colors]
+version = "4.0.0"
+optional = true
+
+[dependencies.serde]
+version = "1.0.204"
+features = ["derive"]
+optional = true
+
+[dependencies.supports-color]
+version = "3.0.0"
+optional = true
+
+[dependencies.thiserror]
+version = "1.0.61"
+
+[dependencies.tracing]
+version = "0.1.40"
+optional = true
+
+[dependencies.tracing-subscriber]
+version = "0.3.18"
+optional = true
+
+
+[features]
+logger = [
+  "dep:async-std",
+  "dep:chrono",
+  "dep:csv",
+  "dep:serde",
+  "dep:tracing",
+  "dep:tracing-subscriber",
+]
+colorful-logs = ["dep:owo-colors", "dep:supports-color"]

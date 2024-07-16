@@ -32,7 +32,7 @@ impl tracing::field::Visit for LogFields {
   fn record_str(&mut self, field: &tracing::field::Field, value: &str) {
     match field.name() {
       "message" | "msg" => self.message = Some(value.into()),
-      "category" | "cat" => self.category = Some(value.into()),
+      "category" | "cat" => self.category = Some(value.to_uppercase()),
       "stopwatch" | "sw" => self.stopwatch = Some(value.into()),
       _ => {}
     }

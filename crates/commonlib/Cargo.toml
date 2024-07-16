@@ -3,6 +3,11 @@ name = "commonlib"
 version = "0.0.1"
 edition = "2021"
 
+[dependencies.commonlib_macros]
+path = "../commonlib_macros"
+
+[dependencies.commonlib_proc_macros]
+path = "../commonlib_proc_macros"
 
 [dependencies.async-std]
 version = "1.12.0"

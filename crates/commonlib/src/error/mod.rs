@@ -6,6 +6,8 @@
 
 use std::ops::Deref;
 
+pub use commonlib_proc_macros::error;
+
 mod display;
 
 #[derive(Debug)]

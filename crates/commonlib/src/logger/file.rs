@@ -51,6 +51,7 @@ impl FileLogger {
       .unwrap()
       .to_path_buf();
     dir_path.push(path);
+    // FIXME: Handle the folder not existing
     dir_path = fs::canonicalize(dir_path).unwrap();
 
     Self {

@@ -1,0 +1,3 @@
+- Implement the traits of 'pad_len', 'pad_eq', etc., with a common trait instead of doing it for every type.
+- Create some sort of way to pass arguments to the logger so they can have a different color.
+  - Create a macro that does something like the 'format' macro and that passes the arguments as 'arg_0', 'arg_1', etc., and then gets them by checking if the value starts with 'arg\_'.

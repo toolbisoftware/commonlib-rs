@@ -234,6 +234,8 @@ version = "0.0.1"
 dependencies = [
  "async-std",
  "chrono",
+ "commonlib_macros",
+ "commonlib_proc_macros",
  "csv",
  "num-traits",
  "owo-colors",
@@ -252,6 +254,7 @@ version = "0.0.1"
 name = "commonlib_proc_macros"
 version = "0.0.1"
 dependencies = [
+ "commonlib_macros",
  "proc-macro2",
  "quote",
  "syn",

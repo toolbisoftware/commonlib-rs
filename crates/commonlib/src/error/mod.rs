@@ -6,7 +6,7 @@
 
 use std::ops::Deref;
 
-pub use commonlib_proc_macros::error;
+pub use commonlib_proc_macros::{error, errorf};
 
 mod display;
 

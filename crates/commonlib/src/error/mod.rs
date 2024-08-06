@@ -27,8 +27,8 @@ pub struct Location {
 
 #[derive(Debug)]
 pub enum SourceKind {
-  Error(Box<dyn std::error::Error>),
-  FromError(Box<dyn std::error::Error>),
+  Error(Box<dyn std::error::Error + Send + Sync>),
+  FromError(Box<dyn std::error::Error + Send + Sync>),
 }
 
 impl Error {
@@ -45,7 +45,7 @@ impl Error {
   }
 
   // TODO: Move this to a 'From' trait when the issue https://github.com/rust-lang/rust/issues/50133 is solved
-  pub fn from_error<T: std::error::Error + 'static>(error: T) -> Self {
+  pub fn from_error<T: std::error::Error + Send + Sync + 'static>(error: T) -> Self {
     Self {
       message: error.to_string(),
       category: None,
@@ -61,7 +61,7 @@ impl Error {
 
   /// ## WARNING!
   /// Using this method will overwrite the previous value.
-  pub fn set_source<T: std::error::Error + 'static>(mut self, error: T) -> Self {
+  pub fn set_source<T: std::error::Error + Send + Sync + 'static>(mut self, error: T) -> Self {
     self.source = Some(SourceKind::Error(Box::new(error)));
     self
   }
